@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:16:33
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-15 12:47:20
+ * @LastEditTime: 2023-05-15 16:30:34
  * @FilePath: /MyThreadPool/ThreadPool.h
  * @Description: 线程池
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
@@ -23,6 +23,8 @@
 #include <functional>
 #include <thread>
 #include <iostream>
+#include <unistd.h>
+#include <fstream>
 
 class ThreadPool {
 public:
@@ -33,18 +35,25 @@ public:
         stop_(std::make_shared<bool>(false)),
         tasks_(std::make_shared<SafeDeque<std::function<void()>>>()) {
             for(int i = 0; i < primary_num; i++) {
-                std::cout << i << std::endl;
+                // std::cout << i << std::endl;
                 primary_threads_.push_back(std::make_shared<PrimaryThread>(tasks_, con_var_ptr_, stop_, i));
             }
         }
 
     ~ThreadPool() {
         *stop_ = true;
+        std::thread([this]{
+            for(int i = 0; i < 1000; i++) {
+                con_var_ptr_->notify_all();
+                sleep(1);
+            }
+        }).detach();
         con_var_ptr_->notify_all();
         for(auto &thread:primary_threads_) {
             thread->Close();
         }
-        std::cout << "over" << std::endl;
+        std::ofstream out("out.txt", std::ofstream::app);
+        out << "over" << std::endl;
     }
 
     // 向任务队列添加任务

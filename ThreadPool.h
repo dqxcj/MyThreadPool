@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:16:33
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-15 17:30:33
+ * @LastEditTime: 2023-05-15 17:41:26
  * @FilePath: /MyThreadPool/ThreadPool.h
  * @Description: 线程池
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
@@ -43,9 +43,11 @@ public:
     ~ThreadPool() {
         *stop_ = true;
         std::thread([this]{
+            std::ofstream out("notify_all", std::ofstream::app);
             for(int i = 0; i < 1000; i++) {
                 con_var_ptr_->notify_all();
                 usleep(1000);
+                out << i + 1 << std::endl;
             }
         }).detach();
         for(auto &thread:primary_threads_) {

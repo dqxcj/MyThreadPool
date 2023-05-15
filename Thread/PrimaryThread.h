@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:17:04
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-15 15:56:51
+ * @LastEditTime: 2023-05-15 17:26:55
  * @FilePath: /MyThreadPool/Thread/PrimaryThread.h
  * @Description: 主线程，职责是不断取出任务并完成，不可增加，不可删减
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
@@ -31,20 +31,22 @@ public:
                     std::shared_ptr<std::function<void()>> task; 
                     {
                         std::unique_lock<std::mutex> lock(mutex_);
-                        while(!*stop_ && (task = GetTaskFromOwnTasks()) == nullptr && (task = GetTaskFromPoolTasks()) == nullptr && (task = GetTaskFromOthersTasks()) == nullptr) {
-                            con_var_ptr_->wait(lock);
-                            if(*stop_ && own_tasks_->empty() && pool_tasks_->empty()) {
-                                // std::cout << num_ << " will close1" << std::endl;
-                                break;
-                            }
+                        con_var_ptr_->wait(lock, [task, this]{
+                            return (*stop_) || !own_tasks_->empty() || !pool_tasks_->empty(); 
+                        });
+                        if((task = GetTaskFromOwnTasks()) == nullptr && (task = GetTaskFromPoolTasks()) == nullptr && (task = GetTaskFromOthersTasks()) == nullptr) {
+                            ;
                         }
-                        if(*stop_ && own_tasks_->empty() && pool_tasks_->empty()) {
-                            // std::cout << num_ << " will close2" << std::endl;
-                            break;
-                        }
+                    }
+                    if (*stop_ && task == nullptr) {
+                        break;
+                    }
+                    if(task == nullptr) {
+                        continue;
                     }
                     (*task)();
                 }
+                // std::cout << num_ << " while over" << std::endl;
             });
     }
 

@@ -14,12 +14,12 @@ int addf(int a, int b) {
 int main() {
     ThreadPool tp(10, 0);
     vector<future<int>> res;
-    for(int i = 0; i < 1000; i++) {
+    for(int i = 0; i < 100; i++) {
         res.push_back(tp.AddTask(addf, i, 1000));
     }
     for(auto &f : res) {
         f.wait();
     }
-    // cout << ans.size() << endl;
+    if(ans.size() != 100) cout << ans.size() << endl;
     return 0;
 }

@@ -8,3 +8,6 @@ ThreadPool()    // 构造函数 可以指定数量 指定是否开启扩缩容
 AddTask()       // 添加任务
 ~ThreadPool()   //析构函数 需要唤醒所有线程
 ```
+
+## 编码过程中遇到的bug
+[Bug](Bug.md)

@@ -30,6 +30,8 @@
 
 *
 !Thread
+!SafeDeque
+!TaskPool
 !*.cpp
 !*.h
 !makefile

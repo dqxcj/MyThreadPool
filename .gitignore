@@ -30,7 +30,7 @@
 
 *
 !Thread
-!SafeDeque
+!SafeDataStructure
 !TaskPool
 !*.cpp
 !*.h

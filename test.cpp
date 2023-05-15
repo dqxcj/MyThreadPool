@@ -8,7 +8,6 @@ using namespace std;
 #include <signal.h>
 
 int main() {
-    int cnt = 0;
     ofstream out("out.txt");
     for(int i = 0; i < 10000; i++) {
         int pid = fork();
@@ -25,8 +24,6 @@ int main() {
                 perror("waitpid");
                 exit(1);
             } else if (ret == 0) {
-                cnt++;
-                printf("timeout\n");
                 sleep(1);
                 kill(pid, SIGKILL); // 使用SIGKILL信号杀死子进程
                 wait(&status);      // 等待子进程结束
@@ -37,6 +34,7 @@ int main() {
             }
         }
     }
-    cout << "timeout " << cnt << endl;
+    ifstream in("out.txt");
+    
     return 0;
 }

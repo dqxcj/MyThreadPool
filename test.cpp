@@ -9,7 +9,7 @@ using namespace std;
 
 int main() {
     ofstream out("out.txt");
-    for(int i = 0; i < 10000; i++) {
+    for(int i = 0; i < 1000; i++) {
         int pid = fork();
         if(pid == 0) {
             execl("/home/admin/Code/MyThreadPool/main", "main", NULL);

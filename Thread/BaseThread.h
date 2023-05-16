@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-16 10:28:03
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-16 12:34:55
+ * @LastEditTime: 2023-05-16 14:30:00
  * @FilePath: /MyThreadPool/Thread/BaseThread.h
  * @Description: 主线程和辅助线程的基类
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
@@ -11,13 +11,14 @@
 #define BASETHREAD_H
 #include "../SafeDataStructure/SafeDeque.h"
 #include "../SafeDataStructure/SafeBase.h"
-#include "MonitorThread.h"
 #include <memory>
 #include <functional>
 #include <mutex>
 #include <thread>
 #include <iostream>
 #include <condition_variable>
+
+class MonitorThread;
 
 class BaseThread {
 friend class MonitorThread;
@@ -74,7 +75,7 @@ protected:
     std::shared_ptr<SafeBase<bool>> is_running_;
     int num_;
 
-    virtual void BuildThead() {
+    void BuildThead() {
         thread_ = std::thread([this]{
             while(true) {
                 std::shared_ptr<std::function<void()>> task;  

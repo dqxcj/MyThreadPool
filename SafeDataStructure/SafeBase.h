@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-15 22:47:59
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-15 22:58:23
+ * @LastEditTime: 2023-05-16 14:47:53
  * @FilePath: /MyThreadPool/SafeDataStructure/SafeBase.h
  * @Description: 加锁的基础数据类型
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
@@ -17,6 +17,17 @@ template <typename T>
 class SafeBase {
 public:
     SafeBase(T &&t): t_ptr_(std::make_shared<T>(std::move(t))) {}
+
+    SafeBase &operator+=(const SafeBase &rhs) {
+        T tmp = rhs.Get();
+        std::unique_lock<std::mutex> lock(mutex_);
+        *t_ptr_ += tmp;
+        return *this;
+    }
+
+    void Add(T &&t) {
+        *t_ptr_ += std::move(t);
+    }
     
     std::shared_ptr<T> Get() {
         std::unique_lock<std::mutex> lock(mutex_);

@@ -12,11 +12,12 @@ int addf(int a, int b) {
 }
 
 int main() {
-    ThreadPool tp(10, 0);
+    ThreadPool tp(1, 100);
     vector<future<int>> res;
-    for(int i = 0; i < 100; i++) {
+    for(int i = 0; i < 1000000; i++) {
         res.push_back(tp.AddTask(addf, i, 1000));
     }
+    tp.SetStart();
     for(auto &f : res) {
         f.wait();
     }

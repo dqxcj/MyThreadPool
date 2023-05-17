@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:17:04
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-16 17:18:50
+ * @LastEditTime: 2023-05-17 10:30:35
  * @FilePath: /MyThreadPool/Thread/PrimaryThread.h
  * @Description: 主线程，职责是不断取出任务并完成，取任务优先级是自己的任务队列、线程池的任务队列、邻居线程的任务队列，不可增加，不可删减
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
@@ -43,13 +43,17 @@ public:
     }
 
     ~PrimaryThread() {
-        thread_.join();
-        #ifdef DEBUG
-        std::cout << num_ << " will close" << std::endl;
-        #endif
+        Close();
     }
 
-
+    void Close() {
+        try {
+            thread_.join();
+            std::cout << num_ << " ~PrimaryThread" << std::endl;
+        } catch (const std::system_error &err) {
+            // std::cerr << "thread.join() 错误: " << err.what() << std::endl;
+        }
+    }
 
     std::shared_ptr<std::function<void()>> GetTaskFromOwnTasks() {
         // 这里判空并不是出于安全考虑，pop_front()内部会判空

@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:17:31
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-16 17:12:55
+ * @LastEditTime: 2023-05-17 10:27:49
  * @FilePath: /MyThreadPool/Thread/SecondaryThread.h
  * @Description: 辅助线程，职责是不断从线程池的任务队列取出任务并完成，可增加，可删减
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved.
@@ -33,18 +33,19 @@ public:
         is_running_(std::make_shared<SafeBase<bool>>(false)),
         stop_ST_(false) {
         BuildThead();
-        std::cout << num_ << "is start" << std::endl;
     }
 
     ~SecondaryThread() {
         stop_ST_ = true;
+        Close();
+    }
+
+    void Close() {
         try {
             thread_.join();
-            std::cout << num_ << "will close" << std::endl;
-        }
-        catch (const std::system_error &error) {
-            std::cerr << num_ << " 错误: " << error.what() << std::endl;
-            // 处理错误或执行必要的清理操作
+            std::cout << num_ << " ~SecondaryThread" << std::endl;
+        } catch (const std::system_error &err) {
+            // std::cerr << "thread.join() 错误: " << err.what() << std::endl;
         }
     }
 

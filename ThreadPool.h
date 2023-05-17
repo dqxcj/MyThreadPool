@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:16:33
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-16 16:35:30
+ * @LastEditTime: 2023-05-17 10:25:21
  * @FilePath: /MyThreadPool/ThreadPool.h
  * @Description: 线程池
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
@@ -60,16 +60,15 @@ public:
         }
 
         // 等待每个线程结束
-        // for(auto &thread : *primary_threads_) {
-        //     thread->Close();
-        // }
+        for(auto &thread : *primary_threads_) {
+            thread->Close();
+        }
 
-        // for(auto &thread : *secondary_threads_) {
-        //     thread->Close();
-        // }
+        for(auto &thread : *secondary_threads_) {
+            thread->Close();
+        }
 
         monitor_thread_->Close();
-
         std::ofstream out("out.txt", std::ofstream::app);
         out << "over" << std::endl;
     }

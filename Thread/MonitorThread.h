@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:18:54
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-16 17:21:46
+ * @LastEditTime: 2023-05-17 10:30:51
  * @FilePath: /MyThreadPool/Thread/MonitorThread.h
  * @Description: 监控线程，用于监控辅助线程，忙则增加辅助线程，闲则删减辅助线程
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
@@ -47,11 +47,18 @@ public:
             BuildThread();
         }
     ~MonitorThread(){
+        Close();
     }
 
     void Close() {
-        thread_.join();
+        try {
+            thread_.join();
+            std::cout << "~MonitorThread" << std::endl;
+        } catch (const std::system_error &err) {
+            // std::cerr << "thread.join() 错误: " << err.what() << std::endl;
+        }
     }
+
 private:
     std::shared_ptr<std::mutex> pool_mutex_ptr_;                                        // mutex
     std::shared_ptr<std::condition_variable> con_var_ptr_;                              // 条件变量
@@ -83,13 +90,17 @@ private:
     void MonitorPrimaryThreads() {
         uint free_cnt = 0;
         for(auto &pthread : *primary_threads_) {
+            #ifdef DEBUG
             std::cout << "*" << *(pthread->is_running_->Get()) << std::endl;
+            #endif
             if(!*(pthread->is_running_->Get())) {
                 free_cnt++;
             }
         }
         // 忙则增加辅助线程
+        #ifdef DEBUG
         std::cout << "free PT: " << free_cnt << std::endl;
+        #endif
         if(free_cnt == 0) {
             AddSecondaryThreads(AddSecondaryThreadsNum);
         }
@@ -99,7 +110,9 @@ private:
         for(auto it = (*secondary_threads_).begin(); it != (*secondary_threads_).end(); ++it) {
             // 闲则删除该辅助线程
             if(!*((*it)->is_running_->Get())) {
+                #ifdef DEBUG
                 std::cout << num_ << " is free" << std::endl;
+                #endif
                 it = secondary_threads_->erase(it);
                 --it;   // 抵消for循环中的++it
                 threads_num_->Add(-1);

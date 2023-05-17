@@ -9,7 +9,7 @@ using namespace std;
 
 int main() {
     ofstream out("out.txt");
-    for(int i = 0; i < 1000; i++) {
+    for(int i = 0; i < 100; i++) {
         int pid = fork();
         if(pid == 0) {
             execl("/home/admin/Code/MyThreadPool/main", "main", NULL);
@@ -24,7 +24,8 @@ int main() {
                 perror("waitpid");
                 exit(1);
             } else if (ret == 0) {
-                sleep(1);
+                // cout << "timeout" << endl;
+                sleep(2);
                 kill(pid, SIGKILL); // 使用SIGKILL信号杀死子进程
                 wait(&status);      // 等待子进程结束
             } else {

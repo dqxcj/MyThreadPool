@@ -2,18 +2,17 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:16:33
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-17 10:25:21
+ * @LastEditTime: 2023-05-17 11:57:16
  * @FilePath: /MyThreadPool/ThreadPool.h
  * @Description: 线程池
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
  */
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
-#include "Thread/PrimaryThread.h"
-#include "Thread/SecondaryThread.h"
 #include "Thread/MonitorThread.h"
 #include "SafeDataStructure/SafeDeque.h"
 #include "SafeDataStructure/SafeBase.h"
+#include "OutPut.h"
 #include <memory>
 #include <deque>
 #include <vector>
@@ -24,13 +23,16 @@
 #include <thread>
 #include <iostream>
 #include <unistd.h>
-#include <fstream>
+
+const uint PrimaryNum = 2;
+const uint MaxSecondaryNum = 10;
+
 
 class ThreadPool {
 public:
     // 假如线程池的线程数量为num，则 primary_num <= num <= primary_num + max_secondary_num
     // 即主线程不可增删，辅助线程可增删
-    ThreadPool(uint primary_num, uint max_secondary_num): 
+    ThreadPool(uint primary_num = PrimaryNum, uint max_secondary_num = MaxSecondaryNum): 
         pool_mutex_ptr_(std::make_shared<std::mutex>()),
         con_var_ptr_(std::make_shared<std::condition_variable>()), 
         start_(std::make_shared<bool>(false)),
@@ -42,6 +44,7 @@ public:
         secondary_threads_(std::make_shared<std::list<std::shared_ptr<SecondaryThread>>>()),
         num_(0) {
 
+            MonitorOut << "***************************************************************" << std::endl;
             // 构造主线程集
             for(int i = 0; i < primary_num; i++) {
                 primary_threads_->push_back(std::make_shared<PrimaryThread>(tasks_, pool_mutex_ptr_, con_var_ptr_, start_, stop_, num_++));
@@ -69,8 +72,8 @@ public:
         }
 
         monitor_thread_->Close();
-        std::ofstream out("out.txt", std::ofstream::app);
-        out << "over" << std::endl;
+
+        OverOut << "over" << std::endl;
     }
 
     // 向任务队列添加任务

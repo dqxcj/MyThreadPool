@@ -2,13 +2,16 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:18:54
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-17 10:30:51
+ * @LastEditTime: 2023-05-17 12:15:58
  * @FilePath: /MyThreadPool/Thread/MonitorThread.h
  * @Description: 监控线程，用于监控辅助线程，忙则增加辅助线程，闲则删减辅助线程
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
  */
 #ifndef MONITORTHREAD_H
 #define MONITORTHREAD_H
+#include "PrimaryThread.h"
+#include "SecondaryThread.h"
+#include "../OutPut.h"
 #include <list>
 #include <memory>
 #include <unistd.h>
@@ -17,9 +20,6 @@
 #include <iostream>
 
 const uint AddSecondaryThreadsNum = 10; 
-
-class PrimaryThread;
-class SecondaryThread;
 
 class MonitorThread {
 public:
@@ -43,7 +43,7 @@ public:
         start_(start),
         stop_(stop),
         num_(num) {
-
+            MonitorOut <<"MonitorThread is start" << std::endl;
             BuildThread();
         }
     ~MonitorThread(){
@@ -53,7 +53,7 @@ public:
     void Close() {
         try {
             thread_.join();
-            std::cout << "~MonitorThread" << std::endl;
+            MonitorOut << "~MonitorThread" << std::endl;
         } catch (const std::system_error &err) {
             // std::cerr << "thread.join() 错误: " << err.what() << std::endl;
         }
@@ -80,8 +80,8 @@ private:
                     MonitorPrimaryThreads();
                     sleep(1);   // 防止新增加的线程还没运行就被下面的函数删除
                     MonitorSecondaryThreads();
-                    std::cout << "primary_threads_.size(): " << primary_threads_->size() << std::endl;
-                    std::cout << "secondary_threads_.size(): " << secondary_threads_->size() << std::endl;
+                    MonitorOut << "primary_threads_.size(): " << primary_threads_->size() << std::endl;
+                    MonitorOut << "secondary_threads_.size(): " << secondary_threads_->size() << std::endl;
                 }
             }
         });
@@ -90,17 +90,11 @@ private:
     void MonitorPrimaryThreads() {
         uint free_cnt = 0;
         for(auto &pthread : *primary_threads_) {
-            #ifdef DEBUG
-            std::cout << "*" << *(pthread->is_running_->Get()) << std::endl;
-            #endif
             if(!*(pthread->is_running_->Get())) {
                 free_cnt++;
             }
         }
         // 忙则增加辅助线程
-        #ifdef DEBUG
-        std::cout << "free PT: " << free_cnt << std::endl;
-        #endif
         if(free_cnt == 0) {
             AddSecondaryThreads(AddSecondaryThreadsNum);
         }
@@ -110,9 +104,6 @@ private:
         for(auto it = (*secondary_threads_).begin(); it != (*secondary_threads_).end(); ++it) {
             // 闲则删除该辅助线程
             if(!*((*it)->is_running_->Get())) {
-                #ifdef DEBUG
-                std::cout << num_ << " is free" << std::endl;
-                #endif
                 it = secondary_threads_->erase(it);
                 --it;   // 抵消for循环中的++it
                 threads_num_->Add(-1);

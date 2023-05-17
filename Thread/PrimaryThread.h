@@ -2,7 +2,7 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:17:04
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-17 10:30:35
+ * @LastEditTime: 2023-05-17 12:15:44
  * @FilePath: /MyThreadPool/Thread/PrimaryThread.h
  * @Description: 主线程，职责是不断取出任务并完成，取任务优先级是自己的任务队列、线程池的任务队列、邻居线程的任务队列，不可增加，不可删减
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
@@ -14,6 +14,7 @@
 
 #include "../SafeDataStructure/SafeDeque.h"
 #include "../SafeDataStructure/SafeBase.h"
+#include "../OutPut.h"
 #include <memory>
 #include <functional>
 #include <mutex>
@@ -39,6 +40,7 @@ public:
         stop_(stop),
         num_(num),
         is_running_(std::make_shared<SafeBase<bool>>(false)) {
+        MonitorOut << num_ << " is start" << std::endl;
         BuildThead();
     }
 
@@ -49,7 +51,7 @@ public:
     void Close() {
         try {
             thread_.join();
-            std::cout << num_ << " ~PrimaryThread" << std::endl;
+            MonitorOut << num_ << " ~PrimaryThread" << std::endl;
         } catch (const std::system_error &err) {
             // std::cerr << "thread.join() 错误: " << err.what() << std::endl;
         }
@@ -99,9 +101,6 @@ protected:
                             con_var_ptr_->wait(lock);
                         }
                         is_running_->Set(true);
-                        #ifdef DEBUG
-                        std::cout << num_ << "is running" << std::endl;
-                        #endif
                     }
                     if (*(stop_) && task == nullptr) {
                         break;

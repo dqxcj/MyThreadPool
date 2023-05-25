@@ -2,8 +2,8 @@
  * @Author: ljy
  * @Date: 2023-05-14 10:16:33
  * @LastEditors: ljy
- * @LastEditTime: 2023-05-17 11:57:16
- * @FilePath: /MyThreadPool/ThreadPool.h
+ * @LastEditTime: 2023-05-25 09:21:15
+ * @FilePath: /MyWebServer/src/include/MyThreadPool/ThreadPool.h
  * @Description: 线程池
  * Copyright (c) 2023 by ljy.sj@qq.com, All Rights Reserved. 
  */
@@ -55,6 +55,30 @@ public:
         }
 
     ~ThreadPool() {
+        #ifndef THREADPOOLCLOSE
+        Close();
+        #endif
+    }
+
+    // 向任务队列添加任务
+    template<typename F, typename... Args>
+    auto AddTask(F &&f, Args &&...args) 
+        -> std::future<decltype(f(args...))>{
+        using return_type = decltype(f(args...));
+        std::function<return_type()> func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+        auto task = std::make_shared<std::packaged_task<return_type()>>(func);
+        std::future<return_type> res = task->get_future();
+        tasks_->emplace_back(std::function<void()>([task]{(*task)();}));
+        con_var_ptr_->notify_one();
+        return res;
+    }
+
+    void SetStart() {
+        *start_ = true;
+    }
+
+    void Close() {
+        #define THREADPOOLCLOSE
         *stop_ = true;
         // 唤醒所有线程
         {
@@ -74,23 +98,6 @@ public:
         monitor_thread_->Close();
 
         OverOut << "over" << std::endl;
-    }
-
-    // 向任务队列添加任务
-    template<typename F, typename... Args>
-    auto AddTask(F &&f, Args &&...args) 
-        -> std::future<decltype(f(args...))>{
-        using return_type = decltype(f(args...));
-        std::function<return_type()> func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
-        auto task = std::make_shared<std::packaged_task<return_type()>>(func);
-        std::future<return_type> res = task->get_future();
-        tasks_->emplace_back(std::function<void()>([task]{(*task)();}));
-        con_var_ptr_->notify_one();
-        return res;
-    }
-
-    void SetStart() {
-        *start_ = true;
     }
 
 private:
